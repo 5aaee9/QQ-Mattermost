@@ -48,6 +48,8 @@ class MattermostProcess @Inject constructor() : IProcess {
                     }
 
                     is Image -> {
+                        text += "[图片]"
+
                         GlobalScope.launch {
                             images.add(Attachment(it.queryUrl(), "[图片]"))
                         }
