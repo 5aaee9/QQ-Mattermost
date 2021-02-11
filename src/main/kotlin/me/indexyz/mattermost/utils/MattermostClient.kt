@@ -18,9 +18,7 @@ import javax.inject.Inject
 
 data class Attachment(
     @Json(name = "image_url")
-    val imageUrl: String,
-    @Json(name = "footer")
-    val text: String
+    val imageUrl: String
 )
 
 data class MattermostMessage(
