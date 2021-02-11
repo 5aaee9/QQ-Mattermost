@@ -77,10 +77,6 @@ class MattermostClient @Inject constructor(
 
                 val dataObj = obj.obj("data") ?: continue
 
-                if (dataObj.obj("props")?.string("from_webhook").equals("true")) {
-                    continue
-                }
-
                 val channel = dataObj.string("channel_name") ?: continue
 
                 val links = (config.links.filter { cfg -> cfg.channel == channel }).lastOrNull() ?: continue
@@ -89,6 +85,10 @@ class MattermostClient @Inject constructor(
                 val post = Klaxon().parseJsonObject(
                     StringReader(dataObj.string("post") ?: continue)
                 )
+
+                if (post.obj("props")?.string("from_webhook").equals("true")) {
+                    continue
+                }
 
                 val message = post.string("message") ?: continue
 
