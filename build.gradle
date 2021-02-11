@@ -35,7 +35,7 @@ dependencies {
 
     api 'net.mamoe:mirai-core:2.2.1'
 
-    runtimeOnly("net.mamoe:mirai-login-solver-selenium:1.0-dev-15")
+//     runtimeOnly("net.mamoe:mirai-login-solver-selenium:1.0-dev-16")
 
     implementation 'com.beust:klaxon:5.0.1'
 
@@ -52,7 +52,7 @@ shadowJar {
     // 生成包的命名规则： baseName-version-classifier.jar
     manifest {
         attributes(
-                'Main-Class': 'me.indexyz.catboat.MainKt'
+                'Main-Class': 'me.indexyz.mattermost.MainKt'
         )
     }
 }

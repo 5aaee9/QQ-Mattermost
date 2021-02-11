@@ -77,7 +77,7 @@ class MattermostClient @Inject constructor(
 
                 val dataObj = obj.obj("data") ?: continue
 
-                if (dataObj.obj("props")?.boolean("from_webhook") == true) {
+                if (dataObj.obj("props")?.string("from_webhook").equals("true")) {
                     continue
                 }
 
