@@ -10,9 +10,7 @@ import io.ktor.http.*
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.message.data.*
-import okhttp3.internal.wait
 import java.io.ByteArrayInputStream
-import java.io.InputStream
 import java.io.StringReader
 import javax.inject.Inject
 
