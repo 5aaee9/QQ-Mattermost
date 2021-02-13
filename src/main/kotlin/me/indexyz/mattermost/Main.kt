@@ -4,14 +4,13 @@ import dagger.Component
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
 import me.indexyz.mattermost.utils.Bot
 import javax.inject.Singleton
 import me.indexyz.mattermost.process.MattermostProcessBindModule
 import me.indexyz.mattermost.utils.ConfigProvider
 import me.indexyz.mattermost.utils.KtorProvider
 import me.indexyz.mattermost.utils.MattermostClient
-import kotlin.concurrent.thread
+import io.sentry.Sentry
 
 @Singleton
 @Component(modules = [
@@ -25,6 +24,10 @@ interface MainComponent {
 }
 
 suspend fun main() {
+    Sentry.init { options ->
+        options.dsn = "https://824ebb2875524b8faaa6466db8dbdebe@o523276.ingest.sentry.io/5635483"
+    }
+
     val main = DaggerMainComponent.builder().build()
 
     awaitAll(GlobalScope.async {

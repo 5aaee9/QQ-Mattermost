@@ -7,6 +7,7 @@ import io.ktor.client.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.sentry.Sentry
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.message.data.*
@@ -57,53 +58,61 @@ class MattermostClient @Inject constructor(
         return res
     }
 
+    private suspend fun onMessage(data: String) {
+        val obj = Klaxon().parseJsonObject(StringReader(data)) ?: return
+
+        if (obj.string("event") != "posted") {
+            return
+        }
+
+        val dataObj = obj.obj("data") ?: return
+
+        val channel = dataObj.string("channel_name") ?: return
+
+        val links = (config.links.filter { cfg -> cfg.channel == channel }).lastOrNull() ?: return
+        val group = bot.getGroup(links.group) ?: return
+
+        val post = Klaxon().parseJsonObject(
+            StringReader(dataObj.string("post") ?: return)
+        )
+
+        if (post.obj("props")?.string("from_webhook").equals("true")) {
+            return
+        }
+
+        val message = post.string("message") ?: return
+
+        var files: List<ByteArray> = emptyList()
+        if (post.containsKey("file_ids")) {
+            files = post.array<String>("file_ids")!!.map {
+                readImage(it)
+            }
+        }
+
+        var out: MessageChain = EmptyMessageChain
+
+        out += message
+        files.map {
+            out += group.uploadImage(ByteArrayInputStream(it))
+        }
+
+        group.sendMessage(out)
+    }
+
     suspend fun listenMessage() {
         this.http.wss(urlString = (config.mattermost.url + "v4/websocket").replace("https", "wss"), {
             this.cookie("MMAUTHTOKEN", config.mattermost.token)
         }) {
             while (true) {
-                val frame = incoming.receive()
-                val data = frame.data.decodeToString()
-                println(data)
-                val obj = Klaxon().parseJsonObject(StringReader(data)) ?: continue
+                try {
+                    val frame = incoming.receive()
+                    val data = frame.data.decodeToString()
+                    println(data)
 
-                if (obj.string("event") != "posted") {
-                    continue
+                    this@MattermostClient.onMessage(data)
+                } catch (e: Exception) {
+                    Sentry.captureException(e)
                 }
-
-                val dataObj = obj.obj("data") ?: continue
-
-                val channel = dataObj.string("channel_name") ?: continue
-
-                val links = (config.links.filter { cfg -> cfg.channel == channel }).lastOrNull() ?: continue
-                val group = bot.getGroup(links.group) ?: continue
-
-                val post = Klaxon().parseJsonObject(
-                    StringReader(dataObj.string("post") ?: continue)
-                )
-
-                if (post.obj("props")?.string("from_webhook").equals("true")) {
-                    continue
-                }
-
-                val message = post.string("message") ?: continue
-
-                var files: List<ByteArray> = emptyList()
-                if (post.containsKey("file_ids")) {
-                    files = post.array<String>("file_ids")!!.map {
-                        readImage(it)
-                    }
-                }
-
-                println(message)
-                var out: MessageChain = EmptyMessageChain
-
-                out += message
-                files.map { 
-                    out += group.uploadImage(ByteArrayInputStream(it))
-                }
-
-                group.sendMessage(out)
             }
         }
     }

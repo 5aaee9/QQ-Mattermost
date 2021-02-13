@@ -13,6 +13,7 @@ import net.mamoe.mirai.Bot
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.message.data.Image.Key.queryUrl
+import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import javax.inject.Inject
 
 @Module
@@ -84,6 +85,7 @@ class MattermostProcess @Inject constructor() : IProcess {
             val message: MattermostMessage = withTimeoutOrNull(20000) {
                 serializeMattermostMessage(groupMessage)
             } ?: return@subscribeAlways
+
 
             mattermost.sendMessage(message)
         }
